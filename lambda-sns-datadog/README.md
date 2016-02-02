@@ -24,6 +24,7 @@ Either init your npm install and setup a dependancy on request or copy package.j
 ```
 
 - Change config.js
+
 The API key and APP key are both required from data dog to be able to push.  Both can be found under integrations -> api links on the data dog interface.  
 
 ```javascript
@@ -34,7 +35,6 @@ config.app_key = 'your_app_key';
 
 module.exports = config;
 ```
-
 
 - Zip the files in to a .zip file to be able to upload to lambda.  
 
