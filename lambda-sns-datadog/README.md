@@ -10,8 +10,8 @@
 ### How to use
 
 - Setup NPM and working repo
-Either init your npm install and setup a dependancy on request or copy package.json
-- [request](https://www.npmjs.com/package/request) Install
+
+You can either init your npm install and setup a dependancy on request or use package.json locally
 
 ```sh
 % cd yourworkspace
