@@ -36,12 +36,10 @@ config.app_key = 'your_app_key';
 module.exports = config;
 ```
 
-- Zip the files in to a .zip file to be able to upload to lambda.  
+- Create the zip to upload to lambda.  
 
 ```sh
 % zip -r your_function.zip index.js config.js node_modules
-# Important 'fileb//', See http://docs.aws.amazon.com/cli/latest/reference/lambda/update-function-code.html.
-% aws lambda --region eu-west-1 update-function-code --function-name your_function --zip-file fileb://your_function.zip 
 ```
 
 ### Create Lambda function
@@ -54,6 +52,10 @@ module.exports = config;
   | --handler index.handler\
   | --zip-file fileb://tmp/kinesis-lambda-dd-test/kinesis-lamba-dd-test.zip 
 # Important 'fileb//', See http://docs.aws.amazon.com/cli/latest/reference/lambda/update-function-code.html.
+```
+
+```sh
+# To submit updated zip files, you can call the update-function-code option 
 % aws lambda --region eu-west-1 update-function-code --function-name your_function --zip-file fileb://your_function.zip
 ```
 
