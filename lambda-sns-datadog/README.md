@@ -1,5 +1,7 @@
 ## SNS -> Lambda -> Datadog tutorial
 
+
+
 ### Required
 
 - nodejs
@@ -9,6 +11,9 @@
 ### How to use
 
 - [request](https://www.npmjs.com/package/request) Install
+
+Either init your npm install and setup a dependancy on request or copy package.json
+
 
 ```sh
 % npm install request
@@ -45,32 +50,33 @@ module.exports = config;
 % aws lambda --region eu-west-1 update-function-code --function-name your_function --zip-file fileb://your_function.zip 
 ```
 
-## Sample
+## Example lambda function using awscli
 
 ### Create Lambda function
 
 ```sh
 % aws lambda --region eu-west-1 \
-  create-function \
-    --function-name im_kayac_com \
-    --runtime nodejs \
-    --role arn:aws:iam::1234567890123:role/lambda_basic_execution \
-    --handler index.handler \
-    --zip-file fileb://im_kayac.zip 
+  create-function --function-name kinesis-lambda-dd-function\
+  | --runtime nodejs\
+  | --role arn:aws:iam::xxxxxxxxxx:role/lambda\
+  | --handler index.handler\
+  | --zip-file fileb://tmp/kinesis-lambda-dd-test/kinesis-lamba-dd-test.zip 
 ```
 
 output.
 
 ```javascript
 {
-    "FunctionName": "im_kayac_com", 
-    "CodeSize": 1140981, 
+    "CodeSha256": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    "FunctionName": "kinesis-lambda-dd-function", 
+    "CodeSize": 936, 
     "MemorySize": 128, 
-    "FunctionArn": "arn:aws:lambda:eu-west-1:1234567890123:function:im_kayac_com", 
-    "Handler": "index.handler", 
-    "Role": "arn:aws:iam::1234567890123:role/lambda_basic_execution", 
+    "FunctionArn": "arn:aws:lambda:eu-west-1:xxxxxxxxx:function:kinesis-lambda-dd-function", 
+    "Version": "$LATEST", 
+    "Role": "arn:aws:iam::xxxxxxxxxxxxxx:role/lambda", 
     "Timeout": 3, 
-    "LastModified": "2015-09-18T23:57:18.536+0000", 
+    "LastModified": "2016-02-01T20:04:23.971+0000", 
+    "Handler": "index.handler", 
     "Runtime": "nodejs", 
     "Description": ""
 }
@@ -79,32 +85,33 @@ output.
 ### Create topic
 
 ```sh
-% aws sns create-topic --name foo
+% aws --region eu-west-1 sns create-topic --name kinesis-lambda-dd-topic-test
 ```
 
 output.
 
 ```javascript
 {
-    "TopicArn": "arn:aws:sns:eu-west-1:1234567890123:foo"
+  "TopicArn": "arn:aws:sns:eu-west-1:xxxxxxxxxxxxx:kinesis-lambda-dd-topic-test"
 }
 ```
 
 ### Create subscribe
 
 ```sh
-% aws sns --region eu-west-1 \
-  subscribe \
-    --topic-arn arn:aws:sns:eu-west-1:1234567890123:foo \
-    --protocol lambda \
-    --notification-endpoint arn:aws:lambda:eu-west-1:1234567890123:function:im_kayac_com
+% aws sns --region eu-west-1\ 
+  subscribe --topic-arn arn:aws:sns:eu-west-1:xxxxxxxxx:kinesis-lambda-dd-topic-test\
+  --protocol lambda\
+  --notification-endpoint arn:aws:lambda:eu-west-1:xxxxxxxxxxxxxx:function:kinesis-lambda-dd-function 
 ```
 
 output.
 
 ```javascript
 {
-    "SubscriptionArn": "arn:aws:sns:eu-west-1:1234567890123:foo:714e76d4-9ac0-4b76-aece-124b1aaef68b"
+    {
+    "SubscriptionArn": "arn:aws:sns:eu-west-1:xxxxxxxxxxxxxxx:kinesis-lambda-dd-topic-test:47e83729-3461-4212-8f86-2a4ac83c9cfa"
+}
 }
 ```
 
@@ -121,7 +128,7 @@ output.
 EOT
 ```
 
-### Create Event source mapping
+### Create Event source mapping through the AWS gui. 
 
 - Management console
 
@@ -130,7 +137,7 @@ EOT
 ### Publish to topic
 
 ```sh
-% aws sns --region eu-west-1 publish --topic-arn arn:aws:sns:eu-west-1:1234567890123:foo --subject "hello lambda\!\!" --message file://message.js
+% aws sns --region eu-west-1 publish --topic-arn arn:aws:sns:eu-west-1:663511558366:kinesis-lambda-dd-topic-test --subject "SNS test with Lambda and Datadog\!\!" --message file:///Users/jerrettlevensalor/Workspace/go_workspace/src/github.com/lambda-virtual/lambda-korya-datadog/message.js 
 ```
 
 output.
@@ -146,64 +153,3 @@ output.
 ![2015091903.png](https://qiita-image-store.s3.amazonaws.com/0/87189/1b83d745-81ad-39e1-653f-8a943aab8cbe.png "2015091903.png")
 
 ***
-
-## lambda-local
-
-### reference
-
-- https://github.com/ashiina/lambda-local
-- http://ashiina.github.io/2015/01/lambda-local/
-
-### install
-
-```sh
-% npm install lambda-local
-```
-
-### dependency
-
-```sh
-% export NODE_PATH='/path/to/lambda-korya-xxxxxxx/node_modules/lambda-local/node_modules'
-Or set your own method of ENV's for AWS
-% export AWS_ACCESS_KEY_ID='AKXXXXXXXXXXXXXXXXXX'
-% export AWS_SECRET_ACCESS_KEY='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-```
-
-### event source
-
-```javascript
-% cat << EOT >> test.js
-module.exports = {
-  "default": "test",
-  "title": "Lambda Message Test",
-  "message": "foo bar",
-  "url": "http://xxx.example.com/"
-};
-EOT
-```
-
-### execute
-
-```sh
-% lambda-local -l index_test.js.test -h handler -e test.js
-```
-
-output.
-
-```
-% lambda-local -l index_test.js.test -h handler -e test.js
-Loading event
-Logs
-----
-START RequestId: 8f1cf24a-6637-11d2-de89-d7c1a17df67c
-Sending Datadog event: 
-URL: https://app.datadoghq.com/api/v1/events?api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-Message: {"title":"Lambda Message Test","text":"foo bar","alert_type":"error"}
-Message send successful!  Server responded with: {"status": "ok", "event": {"priority": null, "date_happened": 1442717663, "handle": null, "title": "Lambda Message Test", "url": "https://app.datadoghq.com/event/event?id=12345678901234567", "text": "foo bar", "tags": null, "related_event_id": null, "id": 12345678901234567}}
-END
-
-
-Message
-------
-
-```
