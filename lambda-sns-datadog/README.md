@@ -1,25 +1,30 @@
 ## SNS -> Lambda -> Datadog tutorial
 
-
-
 ### Required
 
 - nodejs
+- github repo run inside virtualenv
 - [request](https://www.npmjs.com/package/request)
-- Datadog API Key
+- Datadog API Key and APP key
 
 ### How to use
 
+- Setup NPM and working repo
+Either init your npm install and setup a dependancy on request or copy package.json
 - [request](https://www.npmjs.com/package/request) Install
 
-Either init your npm install and setup a dependancy on request or copy package.json
-
-
 ```sh
-% npm install request
+% cd yourworkspace
+% mkvirtualenv -a $PWD lambda-test
+% git clone https://github.com/jerrettlevensalor-wf/lambda-functions.git
+% workon lambda-test
+% cd lambda-functions/lambda-sns-datadog
+% npm install request 
+# This creates a local node_modules for use with creating the zip later
 ```
 
-- Chnage config.js
+- Change config.js
+The API key and APP key are both required from data dog to be able to push.  Both can be found under integrations -> api links on the data dog interface.  
 
 ```javascript
 var config = {};
@@ -30,27 +35,14 @@ config.app_key = 'your_app_key';
 module.exports = config;
 ```
 
-- Creata Lambda function
 
-```sh
-% aws lambda --region eu-west-1 \
-  create-function \
-    --function-name your_function \
-    --runtime nodejs \
-    --role arn:aws:iam::1234567890123:role/lambda_basic_execution \
-    --handler index.handler \
-    --zip-file fileb://im_kayac.zip 
-```
-
-- Update function
+- Zip the files in to a .zip file to be able to upload to lambda.  
 
 ```sh
 % zip -r your_function.zip index.js config.js node_modules
 # Important 'fileb//', See http://docs.aws.amazon.com/cli/latest/reference/lambda/update-function-code.html.
 % aws lambda --region eu-west-1 update-function-code --function-name your_function --zip-file fileb://your_function.zip 
 ```
-
-## Example lambda function using awscli
 
 ### Create Lambda function
 
@@ -61,6 +53,8 @@ module.exports = config;
   | --role arn:aws:iam::xxxxxxxxxx:role/lambda\
   | --handler index.handler\
   | --zip-file fileb://tmp/kinesis-lambda-dd-test/kinesis-lamba-dd-test.zip 
+# Important 'fileb//', See http://docs.aws.amazon.com/cli/latest/reference/lambda/update-function-code.html.
+% aws lambda --region eu-west-1 update-function-code --function-name your_function --zip-file fileb://your_function.zip
 ```
 
 output.
@@ -137,7 +131,7 @@ EOT
 ### Publish to topic
 
 ```sh
-% aws sns --region eu-west-1 publish --topic-arn arn:aws:sns:eu-west-1:663511558366:kinesis-lambda-dd-topic-test --subject "SNS test with Lambda and Datadog\!\!" --message file:///Users/jerrettlevensalor/Workspace/go_workspace/src/github.com/lambda-virtual/lambda-korya-datadog/message.js 
+% aws sns --region eu-west-1 publish --topic-arn arn:aws:sns:eu-west-1:xxxxxxxxxxxxxx:kinesis-lambda-dd-topic-test --subject "SNS test with Lambda and Datadog\!\!" --message file:///Users/jerrettlevensalor/Workspace/go_workspace/src/github.com/lambda-test/message.js 
 ```
 
 output.
