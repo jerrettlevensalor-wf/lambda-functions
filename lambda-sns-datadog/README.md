@@ -1,4 +1,4 @@
-## SNS -> Lambda -> Datadog tutorial
+## Lambda -> SNS -> Datadog tutorial
 
 ### Required
 
